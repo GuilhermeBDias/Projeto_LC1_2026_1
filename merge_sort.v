@@ -32,9 +32,23 @@ Qed.
 
 Definition le_all x l := forall y, In y l -> x <= y.
 
+(** Este lemma tem como objetivo mostrar que, se uma lista já está ordenada e 
+um elemento "x" é menor ou igual a todos os elementos da lista,
+ então adicionar "x" no início preserva a ordenação *)
+ 
 Lemma le_all_sorted: forall l x, Sorted le l -> le_all x l -> Sorted le (x::l).
 Proof.
-  induction l. Admitted.
+  intros l x Hsorted Hall.
+  constructor.
+  - assumption.
+  - destruct l as [|a l'].
+    + constructor.
+    + constructor.
+    apply Hall.
+    left.
+    reflexivity.
+Qed.
+  
  
 Lemma sorted_le_all: forall l x, Sorted le (x::l) -> le_all x l.
 Proof.
