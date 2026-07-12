@@ -50,9 +50,34 @@ Proof.
 Qed.
   
  
+ (** Este lema tem como objetivo mostrar que, se uma lista iniciada por "x" está ordenada, 
+ então "x" é menor ou igual a todos os elementos do restante da lista. *)
+ 
 Lemma sorted_le_all: forall l x, Sorted le (x::l) -> le_all x l.
 Proof.
-  induction l. Admitted.
+  induction l as [|a l' IH].
+  - intros x Hsorted. 
+    unfold le_all. 
+    intros y Hy. 
+    inversion Hy.
+    
+  - intros x Hsorted.
+    inversion Hsorted.
+    unfold le_all.
+    intros y Hy.
+    
+    destruct Hy as [Hy | Hy].
+    + inversion H2.
+      subst.
+      assumption.
+      
+    + specialize (IH a H1).
+      unfold le_all in IH.
+      specialize (IH y Hy).
+      inversion H2.
+      lia.
+Qed.
+  
 
 Lemma merge_permuta: forall (l1 l2: list nat), Permutation (l1 ++ l2) (merge(l1,l2)).
 Proof.
