@@ -77,15 +77,103 @@ Proof.
       inversion H2.
       lia.
 Qed.
-  
+
+(**Lema Auxiliar para o merge_permuta, opera diretamente no par "p"*)
+Lemma merge_permuta_aux : forall p, Permutation (fst p ++ snd p) (merge p).
+Proof.
+  intros p.
+  functional induction (merge p).
+  - simpl. apply Permutation_refl.
+  - simpl. rewrite app_nil_r. apply Permutation_refl.
+  - simpl. constructor. assumption.
+  - simpl.
+    eapply Permutation_trans with (l' := h2 :: h1 :: l1 ++ l2).
+    + apply Permutation_sym.
+      change (Permutation (h2 :: (h1 :: l1) ++ l2) ((h1 :: l1) ++ h2 :: l2)).
+      apply Permutation_middle.
+    + constructor. assumption.
+Qed.
+
+(** Este lema mostra que a função "merge" preserva todos os elementos das listas de entrada.
+Ou seja, o resultado de "merge" é apenas uma reorganização da lista.*)
 
 Lemma merge_permuta: forall (l1 l2: list nat), Permutation (l1 ++ l2) (merge(l1,l2)).
 Proof.
-  induction l1. Admitted.
+  intros l1 l2.
+  apply (merge_permuta_aux (l1, l2)).
+Qed.
+
+(**Lema Auxiliar operando no par para a indução funcional não quebrar*)
+
+Lemma merge_correto_aux: forall p, Sorted le (fst p) -> Sorted le (snd p) -> Sorted le (merge p).
+Proof.
+  intros p. functional induction (merge p).
+  
+  - (*Caso 1 : ([], l2) -> retorna l2 que já sabemos que está ordenado*)
+    intros _ H_sort2. assumption.
+    
+    (*Caso 2 : (l1, []) -> retorna l1 que já sabemos que está ordenado*)
+  - intros H_sort1 _. assumption.
+  
+    (*Caso 3 : (h1::l1, h2::l2) onde h1 <= h2*)
+  - intros H_sort1 H_sort2.
+    inversion H_sort1 as [| ? ? H_sorted_l1 H_hdrel]; subst.
+    apply le_all_sorted.
+    + apply IHl; assumption.
+    + unfold le_all. intros y Hy.
+    apply Nat.leb_le in e0.
+    
+    assert (Hin: In y (l1 ++ h2 :: l2)).
+    { eapply Permutation_in. apply Permutation_sym.
+      apply merge_permuta. exact Hy. }
+    
+    apply in_app_or in Hin. destruct Hin as [Hy_l1 | Hy_l2].
+    * 
+      assert (H_h1_y: h1 <= y).
+      { apply (sorted_le_all l1 h1 H_sort1 y Hy_l1). }
+      assumption.
+      
+    *
+      destruct Hy_l2 as [Heq | H_in_l2].
+      -- subst. lia.
+      -- assert (H_h2_y: h2 <= y).
+         { apply (sorted_le_all l2 h2 H_sort2 y H_in_l2). }
+         lia.
+         
+    (*Caso 4 : (h1::l1, h2::l2) onde h1 > h2*)
+  - intros H_sort1 H_sort2.
+    
+    inversion H_sort2 as [| ? ? H_sorted_l2 H_hdrel]; subst.
+    apply le_all_sorted.
+    
+    + apply IHl; assumption.
+    
+    + unfold le_all. intros y Hy.
+    
+    apply Nat.leb_gt in e0.
+    
+    assert (Hin: In y ((h1 :: l1) ++ l2)).
+    { eapply Permutation_in. apply Permutation_sym. 
+    apply merge_permuta. exact Hy. }
+    
+    apply in_app_or in Hin. destruct Hin as [Hy_l1 | Hy_l2].
+    *
+      destruct Hy_l1 as [Heq | H_in_l1].
+      -- subst. lia.
+      -- assert (H_h2_y: h1 <= y).
+      { apply (sorted_le_all l1 h1 H_sort1 y H_in_l1). }
+      lia.
+    *
+      assert (H_h2_y: h2 <= y).
+      {apply (sorted_le_all l2 h2 H_sort2 y Hy_l2). }
+      assumption.
+Qed.
 
 Lemma merge_correto: forall l1 l2, Sorted le l1 -> Sorted le l2 -> Sorted le (merge (l1,l2)).
 Proof.
-  induction l1 as [ | h1 l1']. Admitted.
+  intros l1 l2.
+  apply (merge_correto_aux (l1, l2)).
+Qed.
 
 (** O algoritmo [mergesort] é definido como a seguir: *)
 
