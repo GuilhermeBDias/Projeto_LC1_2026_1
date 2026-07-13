@@ -199,8 +199,6 @@ Qed.
 Theorem mergesort_correto: forall l, Sorted le (mergesort l) /\ Permutation l (mergesort l).
 Proof. 
 
-Theorem mergesort_correto: forall l, Sorted le (mergesort l) /\ Permutation l (mergesort l).
-Proof.
   intros l.
   functional induction (mergesort l).
   - (*Caso 1: lista vazia []*)
