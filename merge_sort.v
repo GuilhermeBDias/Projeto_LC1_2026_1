@@ -197,7 +197,47 @@ Qed.
 (** A correção do algoritmo [mergesort] é obtida com a prova do teorema abaixo: *)
 
 Theorem mergesort_correto: forall l, Sorted le (mergesort l) /\ Permutation l (mergesort l).
-Proof. Admitted.
+Proof. 
 
+Theorem mergesort_correto: forall l, Sorted le (mergesort l) /\ Permutation l (mergesort l).
+Proof.
+  intros l.
+  functional induction (mergesort l).
+  - (*Caso 1: lista vazia []*)
+    split.
+    + constructor.
+    + apply Permutation_refl.
+    
+  - (*Caso 2: lista com um único elemento [h]*)
+    split.
+    + constructor. constructor. constructor.
+    + apply Permutation_refl.
+    
+  - (*Caso 3: lista com  h1::h2::l' *)
+    destruct IHl0 as [Hsort1 Hperm1].
+    destruct IHl1 as [Hsort2 Hperm2].
+    
+    split.
+    
+    + (*Objetivo 1: Provar Sorted*)
+      apply merge_correto; assumption.
+      
+    + (*Objetivo 2: Provar Permutation*)
+      (*Queremos provar que a lista original (h1::h2::l') é permutação do resultado do merge.
+        Sabemos que "firstn n l ++ skipn n l = l". Então vamos reescrever a lista original como a concatenação
+        de suas duas metades (l1 ++ l2) *)
+      rewrite <- firstn_skipn with (n := Nat.div2 (length (h1 :: h2 :: l'))) (l := h1 :: h2 :: l') at 1.
+      
+      (* Agora o objetivo tem a forma Permutation (l1 ++ l2) (merge (mergesort l1, mergesort l2))*)
+      eapply Permutation_trans.
+      
+      *(* Como l1 permuta com mergesort l1, e l2 permuta com mergesort l2, a concatenação preserva a permutação *)
+        apply Permutation_app.
+        -- exact Hperm1.
+        -- exact Hperm2.
+        
+      * (*Aplicação direta do lema merge_permuta*)
+        apply merge_permuta.
+Qed.
 
 (** Repositório: %\url{https://github.com/flaviodemoura/merge_sort}% *)
